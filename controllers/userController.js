@@ -1,6 +1,5 @@
 const ApiError = require('../error/ApiError')
 const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt')
 const { User, Basket, Review, Device, Rating } = require('../models/models')
 
 const generateJwt = (id, email, role) => {
@@ -22,7 +21,7 @@ class UserController {
         ApiError.badRequest('Пользователь с таким email уже существует')
       )
     }
-    const hashPassword = await bcrypt.hash(password, 5)
+    const hashPassword = password
     const user = await User.create({ email, role, password: hashPassword })
     const basket = await Basket.create({ userId: user.id })
     const token = generateJwt(user.id, email, role)
@@ -34,7 +33,7 @@ class UserController {
     if (!user) {
       return next(ApiError.internal('Пользователь не найден'))
     }
-    let comparePassword = bcrypt.compareSync(password, user.password)
+    let comparePassword = password === user.password
     if (!comparePassword) {
       return next(ApiError.internal('Указан неверный пароль'))
     }
